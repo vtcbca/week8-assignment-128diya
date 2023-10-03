@@ -1,0 +1,67 @@
+'''Q-1. Write a python script to perform CRUD operation on followingtable of EMS.db database. Employee ( eid, ename, dept, basic,
+branch). eid must be primary key. Department : Account, Inventory,IT, HR. Peform Following Operation.
+1. Create table
+2. Insert 5 Records directly, 5 records using tuple and 5 records using
+taking input from user
+3. Update records who are from "Surat" branch with increment in
+salary 10%.
+4. Print All records.
+5. Print records where dept is "HR" and "IT".
+6. Print records in sorting order of department.
+7. Print records where basic is &gt;6000.
+8. Print records whrere employee name second character is "r".
+9. Grouping record of employee who are from "Account" and
+"Inventory".
+10. Print all records based on branch name in
+descending order.'''
+
+import sqlite3
+conn=sqlite3.connect('ems.db')
+cur=conn.cursor()
+
+
+cur.execute("""create table employee(eid primary key,ename,dept,basic,branch)""")
+
+cur.execute("""insert into employee values(101,"Karina","account",6000,"Bardoli")""")
+cur.execute("""insert into employee values(102,"diya","it",35000,"baroda")""")
+cur.execute("""insert into employee values(103,"Vansh","inventory",6000,"navsari")""")
+cur.execute("""insert into employee values(104,"Ayushi","hr",60000,"vyara")""")
+cur.execute("""insert into employee values(105,"Priya","it",40000,"delhi")""")
+
+cur.execute("""select * from employee where dept like "hr" """)
+f1=cur.fetchall()
+print(f1)
+
+cur.execute("""select * from employee where dept like "it" """)
+f1=cur.fetchall()
+print(f1)
+
+
+cur.execute("""select * from employee asce""")
+f2=cur.fetchall()
+print(f2)
+
+cur.execute("""select * from employee where basic=6000 """)
+f3=cur.fetchall()
+print(f3)
+
+cur.execute("""select * from employee where ename like "_r_%" """)
+f4=cur.fetchall()
+print(f4)
+
+cur.execute("""select * from employee where dept="account" """)
+f1=cur.fetchall()
+print(f1)
+
+cur.execute("""select * from employee where dept="inventory" """)
+f1=cur.fetchall()
+print(f1)
+
+cur.execute("""select * from employee desc""")
+f6=cur.fetchall()
+print(f6)
+
+conn.commit()
+conn.close()
+
+
