@@ -1,0 +1,161 @@
+import sqlite3
+import datetime
+
+# Create a SQLite3 database and connect to it
+conn = sqlite3.connect('contact_management.db')
+cursor = conn.cursor()
+
+# Create a table for contacts
+cursor.execute('''
+    CREATE TABLE IF NOT EXISTS contact (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        fname TEXT,
+        lname TEXT,
+        contact TEXT,
+        email TEXT,
+        city TEXT
+    )
+''')
+
+# Create a table for logs
+cursor.execute('''
+    CREATE TABLE IF NOT EXISTS logtable (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        operation TEXT,
+        datetime DATETIME,
+        fname TEXT,
+        lname TEXT,
+        contact TEXT,
+        old_contact TEXT,
+        new_contact TEXT
+    )
+''')
+
+# Create a trigger to validate inputs on the contact table
+cursor.execute('''
+    CREATE TRIGGER IF NOT EXISTS validate_contact
+    BEFORE INSERT ON contact
+    BEGIN
+    SELECT CASE
+        WHEN LENGTH(NEW.contact) < 10 THEN
+            RAISE(ABORT, 'Invalid contact number');
+        END;
+    END;
+''')
+
+# Function to insert a contact
+def insert_contact(fname, lname, contact, email, city):
+    try:
+        cursor.execute('''
+            INSERT INTO contact (fname, lname, contact, email, city)
+            VALUES (?, ?, ?, ?, ?)
+        ''', (fname, lname, contact, email, city))
+        conn.commit()
+
+        # Log the insert operation
+        log_insert(fname, lname, contact)
+        print("Contact inserted successfully!")
+    except sqlite3.Error as e:
+        print(f"Error inserting contact: {e}")
+
+# Function to update a contact
+def update_contact(contact_id, new_contact):
+    try:
+        cursor.execute('''
+            UPDATE contact
+            SET contact = ?
+            WHERE id = ?
+        ''', (new_contact, contact_id))
+        conn.commit()
+
+        # Log the update operation
+        log_update(contact_id, new_contact)
+        print("Contact updated successfully!")
+    except sqlite3.Error as e:
+        print(f"Error updating contact: {e}")
+
+# Function to delete a contact
+def delete_contact(contact_id):
+    try:
+        cursor.execute('''
+            DELETE FROM contact
+            WHERE id = ?
+        ''', (contact_id,))
+        conn.commit()
+
+        # Log the delete operation
+        log_delete(contact_id)
+        print("Contact deleted successfully!")
+    except sqlite3.Error as e:
+        print(f"Error deleting contact: {e}")
+
+# Function to search for contacts
+def search_contact(keyword):
+    try:
+        cursor.execute('''
+            SELECT * FROM contact
+            WHERE fname LIKE ? OR lname LIKE ? OR contact LIKE ?
+        ''', ('%' + keyword + '%', '%' + keyword + '%', '%' + keyword + '%'))
+        contacts = cursor.fetchall()
+        if not contacts:
+            print("No matching contacts found.")
+        else:
+            for contact in contacts:
+                print(contact)
+    except sqlite3.Error as e:
+        print(f"Error searching for contacts: {e}")
+
+# Function to log an insert operation
+def log_insert(fname, lname, contact):
+    try:
+        timestamp = datetime.datetime.now()
+        cursor.execute('''
+            INSERT INTO logtable (operation, datetime, fname, lname, contact)
+            VALUES (?, ?, ?, ?, ?)
+        ''', ('INSERT', timestamp, fname, lname, contact))
+        conn.commit()
+    except sqlite3.Error as e:
+        print(f"Error logging insert operation: {e}")
+
+# Function to log an update operation
+def log_update(contact_id, new_contact):
+    try:
+        timestamp = datetime.datetime.now()
+        cursor.execute('''
+            INSERT INTO logtable (operation, datetime, contact_id, old_contact, new_contact)
+            VALUES (?, ?, ?, ?, ?)
+        ''', ('UPDATE', timestamp, contact_id, get_old_contact(contact_id), new_contact))
+        conn.commit()
+    except sqlite3.Error as e:
+        print(f"Error logging update operation: {e}")
+
+# Function to log a delete operation
+def log_delete(contact_id):
+    try:
+        timestamp = datetime.datetime.now()
+        old_contact = get_old_contact(contact_id)
+        cursor.execute('''
+            INSERT INTO logtable (operation, datetime, contact_id, old_contact)
+            VALUES (?, ?, ?, ?)
+        ''', ('DELETE', timestamp, contact_id, old_contact))
+        conn.commit()
+    except sqlite3.Error as e:
+        print(f"Error logging delete operation: {e}")
+
+# Function to get the old contact information before an update
+def get_old_contact(contact_id):
+    cursor.execute('''
+        SELECT contact FROM contact
+        WHERE id = ?
+    ''', (contact_id,))
+    old_contact = cursor.fetchone()
+    return old_contact[0] if old_contact else None
+
+# Function Call
+insert_contact("DIYA", "Patel", 3245678989 , "dia@gmail.com", "Mahuva")
+update_contact(1, 9898989898)
+search_contact("Diya")
+delete_contact(1)
+
+# Close the database connection
+conn.close(
