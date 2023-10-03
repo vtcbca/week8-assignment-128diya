@@ -1,0 +1,35 @@
+import csv
+f=open('c:\\sqlite\\sqlite3\\csv\\stud.csv','w',newline='')
+w=csv.writer(f)
+
+# WRITE A HEADER ROW
+
+header=['ID','NAME','CITY','CONTACT']
+w.writerow(header)
+
+# WRITE 5 RECORDS DIRECTLY
+
+line=[[1,'diya','mahuwa',8896543210],[2,'vansh','bardoli',9965432109],[3,'karina','surat',7878321098],[4,'ayushi','navsari',7865210987],[5,'deep','surat',9896543210]]
+w.writerows(line)
+
+# GET 5 USER INPUT
+l=[]
+for i in range(5):
+    sid=int(input("Enter Id:"))
+    sname=input("Enter Name:")
+    city=input("Enter City:")
+    no=int(input("Enter Contact No:"))
+    s=[sid,sname,city,no]
+    l.append(s)
+line.extend(l)
+f.close()
+with open('c:\\sqlite\\sqlite3\\csv\\stud.csv','w',newline="") as f:
+    w=csv.writer(f)
+    w.writerow(header)
+    w.writerows(line)
+f.close()
+with open('c:\\sqlite\\sqlite3\\csv\\stud.csv', 'r',errors='ignore') as f:
+    r = csv.reader(f)
+    for row in r:
+        print(row)
+f.close()
